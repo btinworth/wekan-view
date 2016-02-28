@@ -1,15 +1,16 @@
 <head>
   <link href='fonts.googleapis.com/css?family=Roboto:400,700' rel='stylesheet' type='text/css'>
+  <link href='/favicon.png' rel='shortcut icon'>
   <title>wekan-view</title>
 </head>
 
 <body>
   <div class="title">wekan-view</div>
   <br/>
-  {{> summary}}
+  {{> datesummary}}
 </body>
 
-<template name="summary">
+<template name="datesummary">
   <div class="dates">
   {{#each dates}}
     <div class="date">{{this}}</div>
