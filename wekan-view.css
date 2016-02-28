@@ -9,6 +9,10 @@
   font-size: 2em;
 }
 
+.displayDiv {
+  display: inline-block;
+}
+
 .dates {
 }
 

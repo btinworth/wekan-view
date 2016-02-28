@@ -2,8 +2,24 @@ Cards = new Mongo.Collection('cards');
 
 if (Meteor.isClient) {
   Meteor.subscribe('cards');
+  Session.setDefault('displayType', 'Week');
 
-  Template.datesummary.helpers({
+  Template.displaySettings.events = {
+    'change #displayType': function (evt) { debugger;
+      Session.set('displayType', evt.currentTarget.value);
+    },
+  };
+
+  Template.displaySettings.helpers({
+    options: function () {
+      return [
+        { value: "Week",  label: "This Week"  },
+        { value: "All",   label: "Everything" },
+      ];
+    },
+  });
+
+  Template.dateSummary.helpers({
     commits: function (date) {
       var ids = [];
       var cards = Cards.find({ $and: [
@@ -13,56 +29,66 @@ if (Meteor.isClient) {
 
       cards.forEach(function (card) {
         if (card.hasOwnProperty('dueAt') && date == moment(card.dueAt).format('dddd (LL)')) {
+          var cardStr = "";
           for (var i = 0; i < card.commits.length; ++i) {
-            ids.push(card.commits[i]);
+            cardStr += card.commits[i];
+            if (i < card.commits.length - 1) {
+              cardStr += ", ";
+            }
           }
+          ids.push(cardStr);
         }
       });
+
+      if (!ids.length)
+        ids.push('None');
 
       return ids;
     },
 
     dates: function () {
       var dates = [];
-      var cards = Cards.find({ $and: [
-        { 'commits':  { $exists: true }},
-        { 'dueAt':    { $exists: true }}
-      ]});
 
-      var firstDay, lastDay;
-      if (Meteor.settings.public.dateRange) {
-        var curr = new Date();
-        var first = curr.getDate() - curr.getDay();
-        var last = curr.getDate() - curr.getDay() + Meteor.settings.public.dateRange - 1;
-        firstDay = new Date(curr.setDate(first)).toUTCString();
-        lastDay = new Date(curr.setDate(last)).toUTCString();
-      }
-      cards.forEach(function (card) {
-        if (card.hasOwnProperty('dueAt')) {
-          var cardMoment = moment(card.dueAt);
-          var momentStr = cardMoment.format('YYYY MM DD');
-          if (dates.indexOf(momentStr) == -1) {
-            if (Meteor.settings.public.hasOwnProperty("dateRange")) {
-              if (cardMoment.isAfter(firstDay) && cardMoment.isBefore(lastDay)) {
-                dates.push(momentStr);
-              }
-            } else {
+      if (Session.get('displayType') == 'Week') {
+        for (var i = 0; i < 7; ++i) {
+          var curr = new Date();
+          var first = curr.getDate() - curr.getDay();
+          var thisDay = new Date(curr.setDate(first + i)).toUTCString();
+          dates.push(moment(thisDay).format('dddd (LL)'));
+        }
+
+        return dates;
+
+      } else {
+
+        var cards = Cards.find({ $and: [
+          { 'commits':  { $exists: true }},
+          { 'dueAt':    { $exists: true }}
+        ]});
+
+        var firstDay, lastDay;
+        cards.forEach(function (card) {
+          if (card.hasOwnProperty('dueAt')) {
+            var cardMoment = moment(card.dueAt);
+            var momentStr = cardMoment.format('YYYY MM DD');
+            if (dates.indexOf(momentStr) == -1) {
               dates.push(momentStr);
             }
           }
+        });
+
+        dates.sort();
+
+        for (var j = 0; j < dates.length; ++j) {
+          dates[j] = moment(dates[j], 'YYYY MM DD').format('dddd (LL)');
         }
-      });
-      dates.sort();
 
-      for (var i = 0; i < dates.length; ++i) {
-        dates[i] = moment(dates[i], 'YYYY MM DD').format('dddd (LL)');
+        if (!dates.length)
+          dates.push('None');
+
+        return dates;
       }
-
-      if (!dates.length)
-        dates.push('None');
-
-      return dates;
-    }
+    },
   });
 }
 

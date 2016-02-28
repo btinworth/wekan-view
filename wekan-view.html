@@ -1,16 +1,31 @@
 <head>
   <link href='fonts.googleapis.com/css?family=Roboto:400,700' rel='stylesheet' type='text/css'>
-  <link href='/favicon.png' rel='shortcut icon'>
+  <!--<link href='/favicon.png' rel='shortcut icon'>-->
   <title>wekan-view</title>
 </head>
 
 <body>
   <div class="title">wekan-view</div>
   <br/>
-  {{> datesummary}}
+
+  {{> displaySettings}}
+  {{> dateSummary}}
 </body>
 
-<template name="datesummary">
+<template name="displaySettings">
+  <label for="displayType">Display Type: </label>
+  <div class="displayDiv">
+    <select id="displayType">
+      {{#each options}}
+        <option value="{{value}}">{{label}}</option>
+      {{/each}}
+    </select>
+  </div>
+  <br/>
+  <br/>
+</template>
+
+<template name="dateSummary">
   <div class="dates">
   {{#each dates}}
     <div class="date">{{this}}</div>
