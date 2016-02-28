@@ -1,1 +1,23 @@
-/* CSS declarations go here */
+* {
+  font-size: 1em;
+  font-family: Roboto;
+}
+
+.title {
+  text-align: center;
+  font-weight: bold;
+  font-size: 2em;
+}
+
+.dates {
+}
+
+.date {
+  font-weight: bold;
+}
+
+.commits {
+}
+
+.commit {
+}

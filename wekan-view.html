@@ -1,19 +1,24 @@
 <head>
+  <link href='fonts.googleapis.com/css?family=Roboto:400,700' rel='stylesheet' type='text/css'>
   <title>wekan-view</title>
 </head>
 
 <body>
-  <h1>wekan-view</h1>
-
-  {{> hello}}
+  <div class="title">wekan-view</div>
+  <br/>
+  {{> summary}}
 </body>
 
-<template name="hello">
+<template name="summary">
+  <div class="dates">
   {{#each dates}}
-    <div>{{this}}</div>
-    {{#each commits this}}
-      <div>{{this}}</div>
-    {{/each}}
+    <div class="date">{{this}}</div>
+    <div class="commits">
+      {{#each commits this}}
+        <div class="commit">- {{this}}</div>
+      {{/each}}
+    </div>
     <br/>
   {{/each}}
+  </div>
 </template>

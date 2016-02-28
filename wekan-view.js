@@ -4,7 +4,7 @@ if (Meteor.isClient) {
   Meteor.subscribe('cards');
 
   Session.setDefault('dates', '');
-  Template.hello.helpers({
+  Template.summary.helpers({
     commits: function (date) {
       var ids = [];
       var cards = Cards.find({ $and: [
