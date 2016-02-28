@@ -1,0 +1,9 @@
+syntax: glob
+
+*~
+*.swp
+.meteor-spk
+.tx/
+*.sublime-workspace
+tmp/
+.meteor/local/*
