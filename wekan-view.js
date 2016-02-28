@@ -3,7 +3,6 @@ Cards = new Mongo.Collection('cards');
 if (Meteor.isClient) {
   Meteor.subscribe('cards');
 
-  Session.setDefault('dates', '');
   Template.datesummary.helpers({
     commits: function (date) {
       var ids = [];
@@ -29,7 +28,6 @@ if (Meteor.isClient) {
         { 'commits':  { $exists: true }},
         { 'dueAt':    { $exists: true }}
       ]});
-debugger;
 
       var firstDay, lastDay;
       if (Meteor.settings.public.dateRange) {
@@ -42,12 +40,15 @@ debugger;
       cards.forEach(function (card) {
         if (card.hasOwnProperty('dueAt')) {
           var cardMoment = moment(card.dueAt);
-          if (Meteor.settings.public.hasOwnProperty("dateRange")) {
-            if (cardMoment.isAfter(firstDay) && cardMoment.isBefore(lastDay)) {
-              dates.push(cardMoment.format('YYYY MM DD'));
+          var momentStr = cardMoment.format('YYYY MM DD');
+          if (dates.indexOf(momentStr) == -1) {
+            if (Meteor.settings.public.hasOwnProperty("dateRange")) {
+              if (cardMoment.isAfter(firstDay) && cardMoment.isBefore(lastDay)) {
+                dates.push(momentStr);
+              }
+            } else {
+              dates.push(momentStr);
             }
-          } else {
-            dates.push(cardMoment.format('YYYY MM DD'));
           }
         }
       });
