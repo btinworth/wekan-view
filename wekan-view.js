@@ -29,10 +29,26 @@ if (Meteor.isClient) {
         { 'commits':  { $exists: true }},
         { 'dueAt':    { $exists: true }}
       ]});
+debugger;
 
+      var firstDay, lastDay;
+      if (Meteor.settings.public.dateRange) {
+        var curr = new Date();
+        var first = curr.getDate() - curr.getDay();
+        var last = curr.getDate() - curr.getDay() + Meteor.settings.public.dateRange - 1;
+        firstDay = new Date(curr.setDate(first)).toUTCString();
+        lastDay = new Date(curr.setDate(last)).toUTCString();
+      }
       cards.forEach(function (card) {
         if (card.hasOwnProperty('dueAt')) {
-          dates.push(moment(card.dueAt).format('YYYY MM DD'));
+          var cardMoment = moment(card.dueAt);
+          if (Meteor.settings.public.hasOwnProperty("dateRange")) {
+            if (cardMoment.isAfter(firstDay) && cardMoment.isBefore(lastDay)) {
+              dates.push(cardMoment.format('YYYY MM DD'));
+            }
+          } else {
+            dates.push(cardMoment.format('YYYY MM DD'));
+          }
         }
       });
       dates.sort();
@@ -40,6 +56,9 @@ if (Meteor.isClient) {
       for (var i = 0; i < dates.length; ++i) {
         dates[i] = moment(dates[i], 'YYYY MM DD').format('dddd (LL)');
       }
+
+      if (!dates.length)
+        dates.push('None');
 
       return dates;
     }
