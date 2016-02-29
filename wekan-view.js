@@ -1,9 +1,32 @@
 Cards = new Mongo.Collection('cards');
+CardComments = new Mongo.Collection('card_comments');
 
 if (Meteor.isClient) {
   Meteor.subscribe('cards');
-  Session.setDefault('displayType', 'Week');
-  Session.setDefault('showDetails', false);
+
+  Session.setDefault('groupBy',       'date'  );
+  Session.setDefault('displayType',   'Week'  );
+  Session.setDefault('showDetails',   false   );
+
+  Template.info.events = {
+    'change #groupBy': function (evt) {
+      Session.set('groupBy', evt.currentTarget.value);
+    },
+  };
+  Template.info.helpers({
+    groupByDate: function() {
+      return Session.get('groupBy') == 'date';
+    },
+    groupByUser: function() {
+      return Session.get('groupBy') == 'user';
+    },
+    groupByOptions: function() {
+      return [
+        { value: "date",  label: "Date" },
+        { value: "user",  label: "User" },
+      ];
+    },
+  });
 
   Template.displaySettings.events = {
     'change #displayType': function (evt) {
@@ -15,7 +38,7 @@ if (Meteor.isClient) {
   };
 
   Template.displaySettings.helpers({
-    options: function () {
+    displayTypeOptions: function () {
       return [
         { value: "Week",  label: "This Week"  },
         { value: "All",   label: "Everything" },
@@ -97,6 +120,45 @@ if (Meteor.isClient) {
 
         return dates;
       }
+    },
+  });
+
+  Template.userSummary.helpers({
+    users: function() {
+      var ids = [];
+      var cards = Cards.find({});
+      cards.forEach(function (card) {
+        for (var i = 0; i < card.members.length; ++i) {
+          var memberId = card.members[i];
+          var account = Accounts.users.findOne({ _id: memberId }).username;
+          if (ids.indexOf(account) == -1) {
+            ids.push(account);
+          }
+        }
+      });
+      ids.sort();
+      return ids;
+    },
+    cards: function(user) {
+      var c = [];
+      var userId = Accounts.users.findOne({ username: user })._id;
+      var cards = Cards.find({ members: { $in: [ userId ] } });
+      cards.forEach(function (card) {
+        var obj = {
+          title:        card.title,
+          issues:       card.issues,
+          commits:      card.commits,
+          description:  card.description,
+          comments:     [],
+        };
+        var comments = CardComments.find({ cardId: card._id });
+        comments.forEach(function (comment) {
+          var user = Accounts.users.findOne({ _id: comment.userId }).username;
+          obj.comments.push(user + ': ' + comment.text);
+        });
+        c.push(obj);
+      });
+      return c;
     },
   });
 }

@@ -8,15 +8,34 @@
   <div class="title">wekan-view</div>
   <br/>
 
-  {{> displaySettings}}
-  {{> dateSummary}}
+  {{> info}}
 </body>
+
+<template name="info">
+  <label for="groupBy">Group By: </label>
+  <div class="displayDiv">
+    <select id="groupBy">
+      {{#each groupByOptions}}
+        <option value="{{value}}">{{label}}</option>
+      {{/each}}
+    </select>
+  </div>
+  <br/>
+  <br/>
+  {{#if groupByDate}}
+    {{> displaySettings}}
+    {{> dateSummary}}
+  {{/if}}
+  {{#if groupByUser}}
+    {{> userSummary}}
+  {{/if}}
+</template>
 
 <template name="displaySettings">
   <label for="displayType">Display Type: </label>
   <div class="displayDiv">
     <select id="displayType">
-      {{#each options}}
+      {{#each displayTypeOptions}}
         <option value="{{value}}">{{label}}</option>
       {{/each}}
     </select>
@@ -37,5 +56,23 @@
     </div>
     <br/>
   {{/each}}
+  </div>
+</template>
+
+<template name="userSummary">
+  <div class="users">
+    {{#each users}}
+      <div class="date">{{this}}:</div>
+      {{#each cards this}}
+      <div>
+        <div class="commit">{{title}} ({{commits}})</div>
+        <div class="commit">{{description}}</div>
+        {{#each comments}}
+          <div class="commit">{{this}}</div>
+        {{/each}}
+        <br/>
+      </div>
+      {{/each}}
+    {{/each}}
   </div>
 </template>
