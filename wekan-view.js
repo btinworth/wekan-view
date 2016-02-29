@@ -3,10 +3,14 @@ Cards = new Mongo.Collection('cards');
 if (Meteor.isClient) {
   Meteor.subscribe('cards');
   Session.setDefault('displayType', 'Week');
+  Session.setDefault('showDetails', false);
 
   Template.displaySettings.events = {
-    'change #displayType': function (evt) { debugger;
+    'change #displayType': function (evt) {
       Session.set('displayType', evt.currentTarget.value);
+    },
+    'change #showDetails': function (evt) {
+      Session.set('showDetails', evt.currentTarget.checked);
     },
   };
 
@@ -29,14 +33,19 @@ if (Meteor.isClient) {
 
       cards.forEach(function (card) {
         if (card.hasOwnProperty('dueAt') && date == moment(card.dueAt).format('dddd (LL)')) {
-          var cardStr = "";
-          for (var i = 0; i < card.commits.length; ++i) {
-            cardStr += card.commits[i];
-            if (i < card.commits.length - 1) {
-              cardStr += ", ";
+          if (!card.archived) {
+            var cardStr = "";
+            for (var i = 0; i < card.commits.length; ++i) {
+              cardStr += card.commits[i];
+              if (i < card.commits.length - 1) {
+                cardStr += ", ";
+              }
             }
-          }
-          ids.push(cardStr);
+            if (Session.get('showDetails') === true) {
+              cardStr += ": " + card.title;
+            }
+            ids.push(cardStr);
+        }
         }
       });
 
