@@ -6,7 +6,7 @@ if (Meteor.isClient) {
 
   Session.setDefault('groupBy',       'date'  );
   Session.setDefault('displayType',   'Week'  );
-  Session.setDefault('showDetails',   false   );
+  Session.setDefault('showTitles',   false   );
 
   Template.info.events = {
     'change #groupBy': function (evt) {
@@ -32,8 +32,8 @@ if (Meteor.isClient) {
     'change #displayType': function (evt) {
       Session.set('displayType', evt.currentTarget.value);
     },
-    'change #showDetails': function (evt) {
-      Session.set('showDetails', evt.currentTarget.checked);
+    'change #showTitles': function (evt) {
+      Session.set('showTitles', evt.currentTarget.checked);
     },
   };
 
@@ -64,7 +64,7 @@ if (Meteor.isClient) {
                 cardStr += ", ";
               }
             }
-            if (Session.get('showDetails') === true) {
+            if (Session.get('showTitles') === true) {
               cardStr += ": " + card.title;
             }
             ids.push(cardStr);

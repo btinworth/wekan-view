@@ -25,3 +25,26 @@
 
 .commit {
 }
+
+.titlecommits {
+  font-style: italic;
+}
+
+.cardtitle {
+  display: inline-block;
+}
+
+.cardtitle {
+  display: inline-block;
+}
+
+.description {
+}
+
+.comments {
+  margin: 0 auto;
+}
+
+.comment {
+  margin-left: 20px;
+}

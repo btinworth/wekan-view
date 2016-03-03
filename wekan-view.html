@@ -40,7 +40,7 @@
       {{/each}}
     </select>
   </div>
-  <input id="showDetails" type="checkbox"/><label for="showDetails">Show Details</label>
+  <input id="showTitles" type="checkbox"/><label for="showTitles">Show Titles</label>
   <br/>
   <br/>
 </template>
@@ -65,11 +65,19 @@
       <div class="date">{{this}}:</div>
       {{#each cards this}}
       <div>
-        <div class="commit">{{title}} ({{commits}})</div>
-        <div class="commit">{{description}}</div>
+        {{#if commits}}
+          <div class="titlecommits">{{commits}}</div>
+        {{/if}}
+        {{#if issues}}
+          <div class="issues">{{issues}} </div>
+        {{/if}}
+        <div class="cardtitle">{{title}}</div>
+        <div class="description">{{description}}</div>
+        <div class="comments">
         {{#each comments}}
-          <div class="commit">{{this}}</div>
+          <div class="comment">{{this}}</div>
         {{/each}}
+        </div>
         <br/>
       </div>
       {{/each}}
