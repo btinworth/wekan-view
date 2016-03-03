@@ -23,15 +23,16 @@
   <br/>
   <br/>
   {{#if groupByDate}}
-    {{> displaySettings}}
+    {{> dateSettings}}
     {{> dateSummary}}
   {{/if}}
   {{#if groupByUser}}
+    {{> userSettings}}
     {{> userSummary}}
   {{/if}}
 </template>
 
-<template name="displaySettings">
+<template name="dateSettings">
   <label for="displayType">Display Type: </label>
   <div class="displayDiv">
     <select id="displayType">
@@ -40,6 +41,7 @@
       {{/each}}
     </select>
   </div>
+  <input id="showUsers" type="checkbox"/><label for="showUsers">Show Users</label>
   <input id="showTitles" type="checkbox"/><label for="showTitles">Show Titles</label>
   <br/>
   <br/>
@@ -59,12 +61,21 @@
   </div>
 </template>
 
+<template name="userSettings">
+  <input id="showCommits" type="checkbox" checked/><label for="showCommits">Show Commits</label>
+  <input id="showIssues" type="checkbox" checked/><label for="showIssues">Show Issues</label>
+  <input id="showDescriptions" type="checkbox" checked/><label for="showDescriptions">Show Descriptions</label>
+  <input id="showComments" type="checkbox" checked/><label for="showComments">Show Comments</label>
+  <br/>
+  <br/>
+</template>
+
 <template name="userSummary">
   <div class="users">
     {{#each users}}
       <div class="date">{{this}}:</div>
       {{#each cards this}}
-      <div>
+        <div>
         {{#if commits}}
           <div class="titlecommits">{{commits}}</div>
         {{/if}}
@@ -72,15 +83,20 @@
           <div class="issues">{{issues}} </div>
         {{/if}}
         <div class="cardtitle">{{title}}</div>
-        <div class="description">{{description}}</div>
-        <div class="comments">
-        {{#each comments}}
-          <div class="comment">{{this}}</div>
-        {{/each}}
+        {{#if description}}
+          <div class="description">{{description}}</div>
+        {{/if}}
+        {{#if comments}}
+          <div class="comments">
+          {{#each comments}}
+            <div class="comment">{{this}}</div>
+          {{/each}}
+          </div>
+        {{/if}}
         </div>
         <br/>
-      </div>
       {{/each}}
+      <br/>
     {{/each}}
   </div>
 </template>

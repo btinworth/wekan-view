@@ -4,9 +4,7 @@ CardComments = new Mongo.Collection('card_comments');
 if (Meteor.isClient) {
   Meteor.subscribe('cards');
 
-  Session.setDefault('groupBy',       'date'  );
-  Session.setDefault('displayType',   'Week'  );
-  Session.setDefault('showTitles',   false   );
+  Session.setDefault('groupBy',           'date'  );
 
   Template.info.events = {
     'change #groupBy': function (evt) {
@@ -28,16 +26,25 @@ if (Meteor.isClient) {
     },
   });
 
-  Template.displaySettings.events = {
+  // Group by Date
+
+  Session.setDefault('displayType',       'Week'  );
+  Session.setDefault('showUsers',         false   );
+  Session.setDefault('showTitles',        false   );
+
+  Template.dateSettings.events = {
     'change #displayType': function (evt) {
       Session.set('displayType', evt.currentTarget.value);
+    },
+    'change #showUsers': function (evt) {
+      Session.set('showUsers', evt.currentTarget.checked);
     },
     'change #showTitles': function (evt) {
       Session.set('showTitles', evt.currentTarget.checked);
     },
   };
 
-  Template.displaySettings.helpers({
+  Template.dateSettings.helpers({
     displayTypeOptions: function () {
       return [
         { value: "Week",  label: "This Week"  },
@@ -50,7 +57,7 @@ if (Meteor.isClient) {
     commits: function (date) {
       var ids = [];
       var cards = Cards.find({ $and: [
-        { 'commits':  { $exists: true }},
+        { 'commits':  { $exists: true, $ne: [] }},
         { 'dueAt':    { $exists: true }}
       ]});
 
@@ -64,11 +71,23 @@ if (Meteor.isClient) {
                 cardStr += ", ";
               }
             }
+            if (Session.get('showUsers') === true) {
+              var members = "";
+              for (var j = 0; j < card.members.length; ++j) {
+                members += Accounts.users.findOne({ _id: card.members[j] }).username;
+                if (j < card.members.length - 1) {
+                  members += ", ";
+                }
+              }
+              if (members.length) {
+                cardStr += " (" + members + ")";
+              }
+            }
             if (Session.get('showTitles') === true) {
               cardStr += ": " + card.title;
             }
             ids.push(cardStr);
-        }
+          }
         }
       });
 
@@ -94,7 +113,7 @@ if (Meteor.isClient) {
       } else {
 
         var cards = Cards.find({ $and: [
-          { 'commits':  { $exists: true }},
+          { 'commits':  { $exists: true, $ne: [] }},
           { 'dueAt':    { $exists: true }}
         ]});
 
@@ -123,6 +142,28 @@ if (Meteor.isClient) {
     },
   });
 
+  // Group by User
+
+  Session.setDefault('showCommits',       true    );
+  Session.setDefault('showIssues',        true    );
+  Session.setDefault('showDescriptions',  true    );
+  Session.setDefault('showComments',      true    );
+
+  Template.userSettings.events = {
+    'change #showCommits': function (evt) {
+      Session.set('showCommits', evt.currentTarget.checked);
+    },
+    'change #showIssues': function (evt) {
+      Session.set('showIssues', evt.currentTarget.checked);
+    },
+    'change #showDescriptions': function (evt) {
+      Session.set('showDescriptions', evt.currentTarget.checked);
+    },
+    'change #showComments': function (evt) {
+      Session.set('showComments', evt.currentTarget.checked);
+    },
+  };
+
   Template.userSummary.helpers({
     users: function() {
       var ids = [];
@@ -144,18 +185,24 @@ if (Meteor.isClient) {
       var userId = Accounts.users.findOne({ username: user })._id;
       var cards = Cards.find({ members: { $in: [ userId ] } });
       cards.forEach(function (card) {
-        var obj = {
-          title:        card.title,
-          issues:       card.issues,
-          commits:      card.commits,
-          description:  card.description,
-          comments:     [],
-        };
-        var comments = CardComments.find({ cardId: card._id });
-        comments.forEach(function (comment) {
-          var user = Accounts.users.findOne({ _id: comment.userId }).username;
-          obj.comments.push(user + ': ' + comment.text);
-        });
+        var obj = { title: card.title };
+        if (Session.get('showCommits') === true) {
+          obj.commits = card.commits;
+        }
+        if (Session.get('showIssues') ===  true) {
+          obj.issues = card.issues;
+        }
+        if (Session.get('showDescriptions') === true) {
+          obj.description = card.description;
+        }
+        if (Session.get('showComments') === true) {
+          obj.comments = [];
+          var comments = CardComments.find({ cardId: card._id });
+          comments.forEach(function (comment) {
+            var user = Accounts.users.findOne({ _id: comment.userId }).username;
+            obj.comments.push(user + ': ' + comment.text);
+          });
+        }
         c.push(obj);
       });
       return c;
