@@ -1,5 +1,6 @@
 Cards = new Mongo.Collection('cards');
 CardComments = new Mongo.Collection('card_comments');
+Lists = new Mongo.Collection('lists');
 
 if (Meteor.isClient) {
   Meteor.subscribe('cards');
@@ -148,6 +149,7 @@ if (Meteor.isClient) {
   Session.setDefault('showIssues',        true    );
   Session.setDefault('showDescriptions',  true    );
   Session.setDefault('showComments',      true    );
+  Session.setDefault('showDueDate',       true    );
 
   Template.userSettings.events = {
     'change #showCommits': function (evt) {
@@ -162,6 +164,9 @@ if (Meteor.isClient) {
     'change #showComments': function (evt) {
       Session.set('showComments', evt.currentTarget.checked);
     },
+    'change #showDueDate': function (evt) {
+      Session.set('showDueDate', evt.currentTarget.checked);
+    },
   };
 
   Template.userSummary.helpers({
@@ -172,29 +177,65 @@ if (Meteor.isClient) {
         for (var i = 0; i < card.members.length; ++i) {
           var memberId = card.members[i];
           var account = Accounts.users.findOne({ _id: memberId }).username;
-          if (ids.indexOf(account) == -1) {
-            ids.push(account);
+          var exists = false;
+          for (var j = 0; j < ids.length; ++j) {
+            if (ids[j].user == account) {
+              exists = true;
+            }
+          }
+          if (!exists) {
+            var userCards = Cards.find({ members: { $in: [ memberId ] }});
+            var lists = [];
+            userCards.forEach(function (userCard) {
+              var listId = Lists.findOne({ _id: userCard.listId }).title;
+              if (lists.indexOf(listId) == -1)
+                lists.push(listId);
+            });
+            ids.push({
+              'user': account,
+              'lists': lists
+            });
           }
         }
       });
-      ids.sort();
       return ids;
     },
-    cards: function(user) {
+    cards: function(user, list) {
       var c = [];
       var userId = Accounts.users.findOne({ username: user })._id;
-      var cards = Cards.find({ members: { $in: [ userId ] } });
+      var listId = Lists.findOne({ title: list })._id;
+      var cards = Cards.find({ $and: [
+        { members: { $in: [ userId ] }},
+        { listId: listId }
+      ]});
       cards.forEach(function (card) {
         var obj = { title: card.title };
+
         if (Session.get('showCommits') === true) {
-          obj.commits = card.commits;
+          if (card.hasOwnProperty('commits')) {
+            var commits = "";
+            for (var i = 0; i < card.commits.length; ++i) {
+              commits += card.commits[i];
+              if (i != card.commits.length - 1)
+                commits += ", ";
+            }
+            if (commits.length)
+              obj.commits = commits;
+          }
         }
+
         if (Session.get('showIssues') ===  true) {
-          obj.issues = card.issues;
+          if (card.hasOwnProperty('issues') && card.issues.length) {
+            obj.issues = card.issues;
+          }
         }
+
         if (Session.get('showDescriptions') === true) {
-          obj.description = card.description;
+          if (card.hasOwnProperty('description') && card.description.length) {
+            obj.description = card.description;
+          }
         }
+
         if (Session.get('showComments') === true) {
           obj.comments = [];
           var comments = CardComments.find({ cardId: card._id });
@@ -203,6 +244,13 @@ if (Meteor.isClient) {
             obj.comments.push(user + ': ' + comment.text);
           });
         }
+
+        if (Session.get('showDueDate') === true) {
+          if (card.hasOwnProperty('dueAt')) {
+            obj.dueAt = moment(card.dueAt).format('dddd (LL)');
+          }
+        }
+
         c.push(obj);
       });
       return c;

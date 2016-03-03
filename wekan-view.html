@@ -66,6 +66,7 @@
   <input id="showIssues" type="checkbox" checked/><label for="showIssues">Show Issues</label>
   <input id="showDescriptions" type="checkbox" checked/><label for="showDescriptions">Show Descriptions</label>
   <input id="showComments" type="checkbox" checked/><label for="showComments">Show Comments</label>
+  <input id="showDueDate" type="checkbox" checked/><label for="showDueDate">Show Due Date</label>
   <br/>
   <br/>
 </template>
@@ -73,29 +74,39 @@
 <template name="userSummary">
   <div class="users">
     {{#each users}}
-      <div class="date">{{this}}:</div>
-      {{#each cards this}}
-        <div>
-        {{#if commits}}
-          <div class="titlecommits">{{commits}}</div>
-        {{/if}}
-        {{#if issues}}
-          <div class="issues">{{issues}} </div>
-        {{/if}}
-        <div class="cardtitle">{{title}}</div>
-        {{#if description}}
-          <div class="description">{{description}}</div>
-        {{/if}}
-        {{#if comments}}
-          <div class="comments">
-          {{#each comments}}
-            <div class="comment">{{this}}</div>
-          {{/each}}
+      <div class="user">{{user}}:</div>
+      <div class="lists">
+      {{#each lists}}
+        {{this}}:
+        <div class="list">
+        {{#each cards ../user this }}
+          <div>
+          {{#if commits}}
+            <div class="titlecommits">{{commits}}</div>
+          {{/if}}
+          {{#if issues}}
+            <div class="issues">{{issues}} </div>
+          {{/if}}
+          <div class="cardtitle">{{title}}</div>
+          {{#if description}}
+            <div class="description">{{description}}</div>
+          {{/if}}
+          {{#if comments}}
+            <div class="comments">
+            {{#each comments}}
+              <div class="comment">{{this}}</div>
+            {{/each}}
+            </div>
+          {{/if}}
+          {{#if dueAt}}
+            <div class="dueAt">Due At: {{dueAt}}</div>
+          {{/if}}
           </div>
-        {{/if}}
+          <br/>
+        {{/each}}
         </div>
-        <br/>
       {{/each}}
+      </div>
       <br/>
     {{/each}}
   </div>

@@ -13,6 +13,8 @@
   display: inline-block;
 }
 
+/* group by date */
+
 .dates {
 }
 
@@ -24,6 +26,24 @@
 }
 
 .commit {
+}
+
+/* group by user */
+
+.users {
+  margin: 0 auto;
+}
+
+.user {
+  font-weight: bold;
+}
+
+.lists {
+  margin-left: 20px;
+}
+
+.list {
+  margin-left: 20px;
 }
 
 .titlecommits {
