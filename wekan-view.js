@@ -138,20 +138,17 @@ if (Meteor.isClient) {
 
         dates.sort();
 
-        for (var j = 0; j < dates.length; ++j) {
-          dates[j] = moment(dates[j], 'YYYY MM DD').format('dddd (LL)');
+        for (var i = 0; i < dates.length; ++i) {
+          dates[i] = moment(dates[i], 'YYYY MM DD').format('dddd (LL)');
         }
-
-        if (!dates.length)
-          dates.push('None');
 
         return dates;
 
       } else {
 
         const days = getDays();
-        for (var i = 0; i <  days.length; ++i) {
-          dates.push(days[i].format('dddd (LL)'));
+        for (let day of days) {
+          dates.push(day.format('dddd (LL)'));
         }
 
         return dates;
@@ -191,18 +188,17 @@ if (Meteor.isClient) {
       const ids = [];
       const cards = Cards.find({ archived: false });
       cards.forEach(function (card) {
-        for (var i = 0; i < card.members.length; ++i) {
-          const memberId = card.members[i];
-          const account = Accounts.users.findOne({ _id: memberId }).username;
+        for (let member of card.members) {
+          const account = Accounts.users.findOne({ _id: member }).username;
           let exists = false;
-          for (var j = 0; j < ids.length; ++j) {
-            if (ids[j].user == account) {
+          for (let id of ids) {
+            if (id.user == account) {
               exists = true;
             }
           }
           if (!exists) {
             const userCards = Cards.find({ $and: [
-              { members:  { $in: [ memberId ] }},
+              { members:  { $in: [ member ] }},
               { archived: false},
             ]});
             const lists = [];
@@ -235,16 +231,16 @@ if (Meteor.isClient) {
           let validStart = false;
           let validDue = false;
           if (card.hasOwnProperty('dueAt')) {
-            for (var i = 0; i < days.length; ++i) {
-              if (days[i].format('LL') == moment(card.dueAt).format('LL')) {
+            for (let day of days) {
+              if (days.format('LL') == moment(card.dueAt).format('LL')) {
                 validDue = true;
                 break;
               }
             }
           }
           if (card.hasOwnProperty('startAt')) {
-            for (var j = 0; j < days.length; ++j) {
-              if (days[j].format('LL') == moment(card.startAt).format('LL')) {
+            for (let day of days) {
+              if (day.format('LL') == moment(card.startAt).format('LL')) {
                 validStart = true;
                 break;
               }
