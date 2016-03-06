@@ -62,11 +62,11 @@
 </template>
 
 <template name="userSettings">
+  <input id="showDescriptions" type="checkbox" checked/><label for="showDescriptions">Show Descriptions</label>
   <input id="showCommits" type="checkbox" checked/><label for="showCommits">Show Commits</label>
   <input id="showIssues" type="checkbox" checked/><label for="showIssues">Show Issues</label>
-  <input id="showDescriptions" type="checkbox" checked/><label for="showDescriptions">Show Descriptions</label>
+  <input id="showDates" type="checkbox" checked/><label for="showDates">Show Dates</label>
   <input id="showComments" type="checkbox" checked/><label for="showComments">Show Comments</label>
-  <input id="showDueDate" type="checkbox" checked/><label for="showDueDate">Show Due Date</label>
   <br/>
   <br/>
 </template>
@@ -77,33 +77,56 @@
       <div class="user">{{user}}:</div>
       <div class="lists">
       {{#each lists}}
-        {{this}}:
         <div class="list">
-        {{#each cards ../user this }}
-          <div>
-          {{#if commits}}
-            <div class="titlecommits">{{commits}}</div>
-          {{/if}}
-          {{#if issues}}
-            <div class="issues">{{issues}} </div>
-          {{/if}}
-          <div class="cardtitle">{{title}}</div>
-          {{#if description}}
-            <div class="description">{{description}}</div>
-          {{/if}}
-          {{#if comments}}
-            <div class="comments">
-            {{#each comments}}
-              <div class="comment">{{this}}</div>
-            {{/each}}
-            </div>
-          {{/if}}
-          {{#if dueAt}}
-            <div class="dueAt">Due At: {{dueAt}}</div>
-          {{/if}}
-          </div>
-          <br/>
-        {{/each}}
+          {{this}}:
+          {{#each cards ../user this }}
+            <table class="card">
+              <tr>
+                <th class="tableMainTitle" colspan="2">{{title}}</th>
+              </tr>
+              {{#if description}}
+                <tr>
+                  <th class="tableTitle">Description</th>
+                  <th class="tableData">{{description}}</th>
+                </tr>
+              {{/if}}
+              {{#if commits}}
+                <tr>
+                  <th class="tableTitle">Commits</th>
+                  <th class="tableData">{{commits}}</th>
+                </tr>
+              {{/if}}
+              {{#if issues}}
+                <tr>
+                  <th class="tableTitle">Issues</th>
+                  <th class="tableData">{{issues}}</th>
+                </tr>
+              {{/if}}
+              {{#if startAt}}
+                <tr>
+                  <th class="tableTitle">Start At</th>
+                  <th class="tableData">{{startAt}}</th>
+                </tr>
+              {{/if}}
+              {{#if dueAt}}
+                <tr>
+                  <th class="tableTitle">Due At</th>
+                  <th class="tableData">{{dueAt}}</th>
+                </tr>
+              {{/if}}
+              {{#if comments}}
+                <tr>
+                  <th class="tableTitle">Comments</th>
+                  {{#each comments}}
+                    <tr>
+                      <th class="tableData">{{this}}</th>
+                    </tr>
+                  {{/each}}
+                </tr>
+              {{/if}}
+            </table>
+            <br/>
+          {{/each}}
         </div>
       {{/each}}
       </div>

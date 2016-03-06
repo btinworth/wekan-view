@@ -39,32 +39,30 @@
 }
 
 .lists {
-  margin-left: 20px;
 }
 
 .list {
   margin-left: 20px;
 }
 
-.titlecommits {
-  font-style: italic;
-}
-
-.cardtitle {
-  display: inline-block;
-}
-
-.cardtitle {
-  display: inline-block;
-}
-
-.description {
-}
-
-.comments {
-  margin: 0 auto;
-}
-
-.comment {
+.card {
   margin-left: 20px;
+}
+
+.tableMainTitle {
+  text-align: left;
+  vertical-align: top;
+}
+
+.tableTitle {
+  text-align: left;
+  vertical-align: top;
+  font-weight: normal;
+  font-style: italic;
+  width: 100px;
+}
+
+.tableData {
+  text-align: left;
+  font-weight: normal;
 }

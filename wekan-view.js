@@ -49,7 +49,9 @@ if (Meteor.isClient) {
     displayTypeOptions: function () {
       return [
         { value: "Week",  label: "This Week"  },
-        { value: "All",   label: "Everything" },
+        { value: "Next",  label: "Next Week"  },
+        { value: "Last",  label: "Last Week"  },
+        { value: "All",   label: "All Time"   },
       ];
     },
   });
@@ -101,17 +103,7 @@ if (Meteor.isClient) {
     dates: function () {
       var dates = [];
 
-      if (Session.get('displayType') == 'Week') {
-        for (var i = 0; i < 7; ++i) {
-          var curr = new Date();
-          var first = curr.getDate() - curr.getDay();
-          var thisDay = new Date(curr.setDate(first + i)).toUTCString();
-          dates.push(moment(thisDay).format('dddd (LL)'));
-        }
-
-        return dates;
-
-      } else {
+      if (Session.get('displayType') == 'All') {
 
         var cards = Cards.find({ $and: [
           { 'commits':  { $exists: true, $ne: [] }},
@@ -139,33 +131,52 @@ if (Meteor.isClient) {
           dates.push('None');
 
         return dates;
+
+      } else {
+
+        var diff = 0;
+        if (Session.get('displayType') == 'Next') {
+          diff = 7;
+        } else if (Session.get('displayType') == 'Last') {
+          diff = -7;
+        }
+        for (var i = 0; i < 7; ++i) {
+          var curr = new Date();
+          curr.setDate(curr.getDate() + diff);
+          var first = curr.getDate() - curr.getDay();
+          var thisDay = new Date(curr.setDate(first + i)).toUTCString();
+          dates.push(moment(thisDay).format('dddd (LL)'));
+        }
+
+        return dates;
       }
+
     },
   });
 
   // Group by User
 
+  Session.setDefault('showDescriptions',  true    );
   Session.setDefault('showCommits',       true    );
   Session.setDefault('showIssues',        true    );
-  Session.setDefault('showDescriptions',  true    );
   Session.setDefault('showComments',      true    );
-  Session.setDefault('showDueDate',       true    );
+  Session.setDefault('showDates',         true    );
 
   Template.userSettings.events = {
+    'change #showDescriptions': function (evt) {
+      Session.set('showDescriptions', evt.currentTarget.checked);
+    },
     'change #showCommits': function (evt) {
       Session.set('showCommits', evt.currentTarget.checked);
     },
     'change #showIssues': function (evt) {
       Session.set('showIssues', evt.currentTarget.checked);
     },
-    'change #showDescriptions': function (evt) {
-      Session.set('showDescriptions', evt.currentTarget.checked);
-    },
     'change #showComments': function (evt) {
       Session.set('showComments', evt.currentTarget.checked);
     },
-    'change #showDueDate': function (evt) {
-      Session.set('showDueDate', evt.currentTarget.checked);
+    'change #showDates': function (evt) {
+      Session.set('showDates', evt.currentTarget.checked);
     },
   };
 
@@ -192,8 +203,8 @@ if (Meteor.isClient) {
                 lists.push(listId);
             });
             ids.push({
-              'user': account,
-              'lists': lists
+              'user':   account,
+              'lists':  lists
             });
           }
         }
@@ -210,6 +221,12 @@ if (Meteor.isClient) {
       ]});
       cards.forEach(function (card) {
         var obj = { title: card.title };
+
+        if (Session.get('showDescriptions') === true) {
+          if (card.hasOwnProperty('description') && card.description.length) {
+            obj.description = card.description;
+          }
+        }
 
         if (Session.get('showCommits') === true) {
           if (card.hasOwnProperty('commits')) {
@@ -230,9 +247,12 @@ if (Meteor.isClient) {
           }
         }
 
-        if (Session.get('showDescriptions') === true) {
-          if (card.hasOwnProperty('description') && card.description.length) {
-            obj.description = card.description;
+        if (Session.get('showDates') === true) {
+          if (card.hasOwnProperty('dueAt')) {
+            obj.dueAt = moment(card.dueAt).format('Do MMMM, YYYY (dddd)');
+          }
+          if (card.hasOwnProperty('startAt')) {
+            obj.startAt = moment(card.startAt).format('Do MMMM, YYYY (dddd)');
           }
         }
 
@@ -243,12 +263,6 @@ if (Meteor.isClient) {
             var user = Accounts.users.findOne({ _id: comment.userId }).username;
             obj.comments.push(user + ': ' + comment.text);
           });
-        }
-
-        if (Session.get('showDueDate') === true) {
-          if (card.hasOwnProperty('dueAt')) {
-            obj.dueAt = moment(card.dueAt).format('dddd (LL)');
-          }
         }
 
         c.push(obj);
