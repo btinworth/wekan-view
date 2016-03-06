@@ -58,8 +58,8 @@ if (Meteor.isClient) {
 
   Template.dateSummary.helpers({
     commits: function (date) {
-      var ids = [];
-      var cards = Cards.find({ $and: [
+      const ids = [];
+      const cards = Cards.find({ $and: [
         { 'commits':  { $exists: true, $ne: [] }},
         { 'dueAt':    { $exists: true }}
       ]});
@@ -67,7 +67,7 @@ if (Meteor.isClient) {
       cards.forEach(function (card) {
         if (card.hasOwnProperty('dueAt') && date == moment(card.dueAt).format('dddd (LL)')) {
           if (!card.archived) {
-            var cardStr = "";
+            let cardStr = "";
             for (var i = 0; i < card.commits.length; ++i) {
               cardStr += card.commits[i];
               if (i < card.commits.length - 1) {
@@ -75,7 +75,7 @@ if (Meteor.isClient) {
               }
             }
             if (Session.get('showUsers') === true) {
-              var members = "";
+              let members = "";
               for (var j = 0; j < card.members.length; ++j) {
                 members += Accounts.users.findOne({ _id: card.members[j] }).username;
                 if (j < card.members.length - 1) {
@@ -101,20 +101,20 @@ if (Meteor.isClient) {
     },
 
     dates: function () {
-      var dates = [];
+      const dates = [];
 
       if (Session.get('displayType') == 'All') {
 
-        var cards = Cards.find({ $and: [
+        const cards = Cards.find({ $and: [
           { 'commits':  { $exists: true, $ne: [] }},
           { 'dueAt':    { $exists: true }}
         ]});
 
-        var firstDay, lastDay;
+        let firstDay, lastDay;
         cards.forEach(function (card) {
           if (card.hasOwnProperty('dueAt')) {
-            var cardMoment = moment(card.dueAt);
-            var momentStr = cardMoment.format('YYYY MM DD');
+            const cardMoment = moment(card.dueAt);
+            const momentStr = cardMoment.format('YYYY MM DD');
             if (dates.indexOf(momentStr) == -1) {
               dates.push(momentStr);
             }
@@ -134,17 +134,17 @@ if (Meteor.isClient) {
 
       } else {
 
-        var diff = 0;
+        let diff = 0;
         if (Session.get('displayType') == 'Next') {
           diff = 7;
         } else if (Session.get('displayType') == 'Last') {
           diff = -7;
         }
         for (var i = 0; i < 7; ++i) {
-          var curr = new Date();
+          let curr = new Date();
           curr.setDate(curr.getDate() + diff);
-          var first = curr.getDate() - curr.getDay();
-          var thisDay = new Date(curr.setDate(first + i)).toUTCString();
+          const first = curr.getDate() - curr.getDay();
+          const thisDay = new Date(curr.setDate(first + i)).toUTCString();
           dates.push(moment(thisDay).format('dddd (LL)'));
         }
 
@@ -182,23 +182,23 @@ if (Meteor.isClient) {
 
   Template.userSummary.helpers({
     users: function() {
-      var ids = [];
-      var cards = Cards.find({});
+      const ids = [];
+      const cards = Cards.find({});
       cards.forEach(function (card) {
         for (var i = 0; i < card.members.length; ++i) {
-          var memberId = card.members[i];
-          var account = Accounts.users.findOne({ _id: memberId }).username;
-          var exists = false;
+          const memberId = card.members[i];
+          const account = Accounts.users.findOne({ _id: memberId }).username;
+          let exists = false;
           for (var j = 0; j < ids.length; ++j) {
             if (ids[j].user == account) {
               exists = true;
             }
           }
           if (!exists) {
-            var userCards = Cards.find({ members: { $in: [ memberId ] }});
-            var lists = [];
+            const userCards = Cards.find({ members: { $in: [ memberId ] }});
+            const lists = [];
             userCards.forEach(function (userCard) {
-              var listId = Lists.findOne({ _id: userCard.listId }).title;
+              const listId = Lists.findOne({ _id: userCard.listId }).title;
               if (lists.indexOf(listId) == -1)
                 lists.push(listId);
             });
@@ -212,15 +212,15 @@ if (Meteor.isClient) {
       return ids;
     },
     cards: function(user, list) {
-      var c = [];
-      var userId = Accounts.users.findOne({ username: user })._id;
-      var listId = Lists.findOne({ title: list })._id;
-      var cards = Cards.find({ $and: [
+      const c = [];
+      const userId = Accounts.users.findOne({ username: user })._id;
+      const listId = Lists.findOne({ title: list })._id;
+      const cards = Cards.find({ $and: [
         { members: { $in: [ userId ] }},
         { listId: listId }
       ]});
       cards.forEach(function (card) {
-        var obj = { title: card.title };
+        const obj = { title: card.title };
 
         if (Session.get('showDescriptions') === true) {
           if (card.hasOwnProperty('description') && card.description.length) {
@@ -230,7 +230,7 @@ if (Meteor.isClient) {
 
         if (Session.get('showCommits') === true) {
           if (card.hasOwnProperty('commits')) {
-            var commits = "";
+            let commits = "";
             for (var i = 0; i < card.commits.length; ++i) {
               commits += card.commits[i];
               if (i != card.commits.length - 1)
@@ -258,9 +258,9 @@ if (Meteor.isClient) {
 
         if (Session.get('showComments') === true) {
           obj.comments = [];
-          var comments = CardComments.find({ cardId: card._id });
+          const comments = CardComments.find({ cardId: card._id });
           comments.forEach(function (comment) {
-            var user = Accounts.users.findOne({ _id: comment.userId }).username;
+            const user = Accounts.users.findOne({ _id: comment.userId }).username;
             obj.comments.push(user + ': ' + comment.text);
           });
         }
