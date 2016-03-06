@@ -1,15 +1,38 @@
 Cards = new Mongo.Collection('cards');
-CardComments = new Mongo.Collection('card_comments');
+Comments = new Mongo.Collection('card_comments');
 Lists = new Mongo.Collection('lists');
 
+getDays = function() {
+  const days = [];
+  let diff = 0;
+  if (Session.get('displayType') == 'Next') {
+    diff = 7;
+  } else if (Session.get('displayType') == 'Last') {
+    diff = -7;
+  }
+  for (var i = 0; i < 7; ++i) {
+    let curr = new Date();
+    curr.setDate(curr.getDate() + diff);
+    const first = curr.getDate() - curr.getDay();
+    const thisDay = new Date(curr.setDate(first + i)).toUTCString();
+    days.push(moment(thisDay));
+  }
+  return days;
+};
+
 if (Meteor.isClient) {
+
   Meteor.subscribe('cards');
 
-  Session.setDefault('groupBy',           'date'  );
+  Session.setDefault('groupBy',       'date'  );
+  Session.setDefault('displayType',   'Week'  );
 
   Template.info.events = {
     'change #groupBy': function (evt) {
       Session.set('groupBy', evt.currentTarget.value);
+    },
+    'change #displayType': function (evt) {
+      Session.set('displayType', evt.currentTarget.value);
     },
   };
   Template.info.helpers({
@@ -25,27 +48,7 @@ if (Meteor.isClient) {
         { value: "user",  label: "User" },
       ];
     },
-  });
 
-  // Group by Date
-
-  Session.setDefault('displayType',       'Week'  );
-  Session.setDefault('showUsers',         false   );
-  Session.setDefault('showTitles',        false   );
-
-  Template.dateSettings.events = {
-    'change #displayType': function (evt) {
-      Session.set('displayType', evt.currentTarget.value);
-    },
-    'change #showUsers': function (evt) {
-      Session.set('showUsers', evt.currentTarget.checked);
-    },
-    'change #showTitles': function (evt) {
-      Session.set('showTitles', evt.currentTarget.checked);
-    },
-  };
-
-  Template.dateSettings.helpers({
     displayTypeOptions: function () {
       return [
         { value: "Week",  label: "This Week"  },
@@ -56,41 +59,54 @@ if (Meteor.isClient) {
     },
   });
 
+  // Group by Date
+
+  Session.setDefault('showUsers',     false );
+  Session.setDefault('showTitles',    false );
+
+  Template.dateSettings.events = {
+    'change #showUsers': function (evt) {
+      Session.set('showUsers', evt.currentTarget.checked);
+    },
+    'change #showTitles': function (evt) {
+      Session.set('showTitles', evt.currentTarget.checked);
+    },
+  };
+
   Template.dateSummary.helpers({
     commits: function (date) {
       const ids = [];
       const cards = Cards.find({ $and: [
-        { 'commits':  { $exists: true, $ne: [] }},
-        { 'dueAt':    { $exists: true }}
+        { commits:   { $exists: true, $ne: [] }},
+        { dueAt:     { $exists: true }},
+        { archived:  false }
       ]});
 
       cards.forEach(function (card) {
-        if (card.hasOwnProperty('dueAt') && date == moment(card.dueAt).format('dddd (LL)')) {
-          if (!card.archived) {
-            let cardStr = "";
-            for (var i = 0; i < card.commits.length; ++i) {
-              cardStr += card.commits[i];
-              if (i < card.commits.length - 1) {
-                cardStr += ", ";
-              }
+        if (date == moment(card.dueAt).format('dddd (LL)')) {
+          let cardStr = "";
+          for (var i = 0; i < card.commits.length; ++i) {
+            cardStr += card.commits[i];
+            if (i < card.commits.length - 1) {
+              cardStr += ", ";
             }
-            if (Session.get('showUsers') === true) {
-              let members = "";
-              for (var j = 0; j < card.members.length; ++j) {
-                members += Accounts.users.findOne({ _id: card.members[j] }).username;
-                if (j < card.members.length - 1) {
-                  members += ", ";
-                }
-              }
-              if (members.length) {
-                cardStr += " (" + members + ")";
-              }
-            }
-            if (Session.get('showTitles') === true) {
-              cardStr += ": " + card.title;
-            }
-            ids.push(cardStr);
           }
+          if (Session.get('showUsers') === true) {
+            let members = "";
+            for (var j = 0; j < card.members.length; ++j) {
+              members += Accounts.users.findOne({ _id: card.members[j] }).username;
+              if (j < card.members.length - 1) {
+                members += ", ";
+              }
+            }
+            if (members.length) {
+              cardStr += " (" + members + ")";
+            }
+          }
+          if (Session.get('showTitles') === true) {
+            cardStr += ": " + card.title;
+          }
+          ids.push(cardStr);
         }
       });
 
@@ -106,18 +122,17 @@ if (Meteor.isClient) {
       if (Session.get('displayType') == 'All') {
 
         const cards = Cards.find({ $and: [
-          { 'commits':  { $exists: true, $ne: [] }},
-          { 'dueAt':    { $exists: true }}
+          { commits:  { $exists: true, $ne: [] }},
+          { dueAt:    { $exists: true }},
+          { archived:  false }
         ]});
 
         let firstDay, lastDay;
         cards.forEach(function (card) {
-          if (card.hasOwnProperty('dueAt')) {
-            const cardMoment = moment(card.dueAt);
-            const momentStr = cardMoment.format('YYYY MM DD');
-            if (dates.indexOf(momentStr) == -1) {
-              dates.push(momentStr);
-            }
+          const cardMoment = moment(card.dueAt);
+          const momentStr = cardMoment.format('YYYY MM DD');
+          if (dates.indexOf(momentStr) == -1) {
+            dates.push(momentStr);
           }
         });
 
@@ -134,18 +149,9 @@ if (Meteor.isClient) {
 
       } else {
 
-        let diff = 0;
-        if (Session.get('displayType') == 'Next') {
-          diff = 7;
-        } else if (Session.get('displayType') == 'Last') {
-          diff = -7;
-        }
-        for (var i = 0; i < 7; ++i) {
-          let curr = new Date();
-          curr.setDate(curr.getDate() + diff);
-          const first = curr.getDate() - curr.getDay();
-          const thisDay = new Date(curr.setDate(first + i)).toUTCString();
-          dates.push(moment(thisDay).format('dddd (LL)'));
+        const days = getDays();
+        for (var i = 0; i <  days.length; ++i) {
+          dates.push(days[i].format('dddd (LL)'));
         }
 
         return dates;
@@ -156,11 +162,11 @@ if (Meteor.isClient) {
 
   // Group by User
 
-  Session.setDefault('showDescriptions',  true    );
-  Session.setDefault('showCommits',       true    );
-  Session.setDefault('showIssues',        true    );
-  Session.setDefault('showComments',      true    );
-  Session.setDefault('showDates',         true    );
+  Session.setDefault('showDescriptions',    true  );
+  Session.setDefault('showCommits',         true  );
+  Session.setDefault('showIssues',          true  );
+  Session.setDefault('showComments',        true  );
+  Session.setDefault('showDates',           true  );
 
   Template.userSettings.events = {
     'change #showDescriptions': function (evt) {
@@ -183,7 +189,7 @@ if (Meteor.isClient) {
   Template.userSummary.helpers({
     users: function() {
       const ids = [];
-      const cards = Cards.find({});
+      const cards = Cards.find({ archived: false });
       cards.forEach(function (card) {
         for (var i = 0; i < card.members.length; ++i) {
           const memberId = card.members[i];
@@ -195,7 +201,10 @@ if (Meteor.isClient) {
             }
           }
           if (!exists) {
-            const userCards = Cards.find({ members: { $in: [ memberId ] }});
+            const userCards = Cards.find({ $and: [
+              { members:  { $in: [ memberId ] }},
+              { archived: false},
+            ]});
             const lists = [];
             userCards.forEach(function (userCard) {
               const listId = Lists.findOne({ _id: userCard.listId }).title;
@@ -216,10 +225,35 @@ if (Meteor.isClient) {
       const userId = Accounts.users.findOne({ username: user })._id;
       const listId = Lists.findOne({ title: list })._id;
       const cards = Cards.find({ $and: [
-        { members: { $in: [ userId ] }},
-        { listId: listId }
+        { members:  { $in: [ userId ] }},
+        { listId:   listId },
+        { archived: false }
       ]});
       cards.forEach(function (card) {
+        if (Session.get('displayType') != 'All') {
+          const days = getDays();
+          let validStart = false;
+          let validDue = false;
+          if (card.hasOwnProperty('dueAt')) {
+            for (var i = 0; i < days.length; ++i) {
+              if (days[i].format('LL') == moment(card.dueAt).format('LL')) {
+                validDue = true;
+                break;
+              }
+            }
+          }
+          if (card.hasOwnProperty('startAt')) {
+            for (var j = 0; j < days.length; ++j) {
+              if (days[j].format('LL') == moment(card.startAt).format('LL')) {
+                validStart = true;
+                break;
+              }
+            }
+          }
+          if (!validStart && !validDue) {
+            return;
+          }
+        }
         const obj = { title: card.title };
 
         if (Session.get('showDescriptions') === true) {
@@ -258,7 +292,7 @@ if (Meteor.isClient) {
 
         if (Session.get('showComments') === true) {
           obj.comments = [];
-          const comments = CardComments.find({ cardId: card._id });
+          const comments = Comments.find({ cardId: card._id });
           comments.forEach(function (comment) {
             const user = Accounts.users.findOne({ _id: comment.userId }).username;
             obj.comments.push(user + ': ' + comment.text);

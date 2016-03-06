@@ -12,10 +12,16 @@
 </body>
 
 <template name="info">
-  <label for="groupBy">Group By: </label>
   <div class="displayDiv">
-    <select id="groupBy">
-      {{#each groupByOptions}}
+    <label for="groupBy">Group By: </label>
+      <select id="groupBy">
+        {{#each groupByOptions}}
+          <option value="{{value}}">{{label}}</option>
+        {{/each}}
+      </select>
+    <label for="displayType">Time Period: </label>
+    <select id="displayType">
+      {{#each displayTypeOptions}}
         <option value="{{value}}">{{label}}</option>
       {{/each}}
     </select>
@@ -33,14 +39,7 @@
 </template>
 
 <template name="dateSettings">
-  <label for="displayType">Display Type: </label>
-  <div class="displayDiv">
-    <select id="displayType">
-      {{#each displayTypeOptions}}
-        <option value="{{value}}">{{label}}</option>
-      {{/each}}
-    </select>
-  </div>
+  <label>Display Options: </label>
   <input id="showUsers" type="checkbox"/><label for="showUsers">Show Users</label>
   <input id="showTitles" type="checkbox"/><label for="showTitles">Show Titles</label>
   <br/>
@@ -62,6 +61,7 @@
 </template>
 
 <template name="userSettings">
+  <label>Display Options: </label>
   <input id="showDescriptions" type="checkbox" checked/><label for="showDescriptions">Show Descriptions</label>
   <input id="showCommits" type="checkbox" checked/><label for="showCommits">Show Commits</label>
   <input id="showIssues" type="checkbox" checked/><label for="showIssues">Show Issues</label>
