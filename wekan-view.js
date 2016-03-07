@@ -44,17 +44,17 @@ if (Meteor.isClient) {
     },
     groupByOptions: function() {
       return [
-        { value: "date",  label: "Date" },
-        { value: "user",  label: "User" },
+        { value: 'date',  label: 'Date' },
+        { value: 'user',  label: 'User' },
       ];
     },
 
     displayTypeOptions: function () {
       return [
-        { value: "Week",  label: "This Week"  },
-        { value: "Next",  label: "Next Week"  },
-        { value: "Last",  label: "Last Week"  },
-        { value: "All",   label: "All Time"   },
+        { value: 'Week',  label: 'This Week'  },
+        { value: 'Next',  label: 'Next Week'  },
+        { value: 'Last',  label: 'Last Week'  },
+        { value: 'All',   label: 'All Time'   },
       ];
     },
   });
@@ -84,27 +84,27 @@ if (Meteor.isClient) {
 
       cards.forEach(function (card) {
         if (date == moment(card.dueAt).format('dddd (LL)')) {
-          let cardStr = "";
+          let cardStr = '';
           for (var i = 0; i < card.commits.length; ++i) {
             cardStr += card.commits[i];
             if (i < card.commits.length - 1) {
-              cardStr += ", ";
+              cardStr += ', ';
             }
           }
           if (Session.get('showUsers') === true) {
-            let members = "";
+            let members = '';
             for (var j = 0; j < card.members.length; ++j) {
               members += Accounts.users.findOne({ _id: card.members[j] }).username;
               if (j < card.members.length - 1) {
-                members += ", ";
+                members += ', ';
               }
             }
             if (members.length) {
-              cardStr += " (" + members + ")";
+              cardStr += ' (' + members + ')';
             }
           }
           if (Session.get('showTitles') === true) {
-            cardStr += ": " + card.title;
+            cardStr += ': ' + card.title;
           }
           ids.push(cardStr);
         }
@@ -219,10 +219,14 @@ if (Meteor.isClient) {
     cards: function(user, list) {
       const c = [];
       const userId = Accounts.users.findOne({ username: user })._id;
-      const listId = Lists.findOne({ title: list })._id;
+      const listIds = Lists.find({ title: list });
+      const lists = [];
+      listIds.forEach(function (list) {
+        lists.push(list._id);
+      });
       const cards = Cards.find({ $and: [
         { members:  { $in: [ userId ] }},
-        { listId:   listId },
+        { listId:   { $in: lists }},
         { archived: false }
       ]});
       cards.forEach(function (card) {
@@ -230,18 +234,20 @@ if (Meteor.isClient) {
           const days = getDays();
           let validStart = false;
           let validDue = false;
-          if (card.hasOwnProperty('dueAt')) {
+          if (card.hasOwnProperty('startAt')) {
+            const cardStart = moment(card.startAt).format('YYYY MM DD');
             for (let day of days) {
-              if (days.format('LL') == moment(card.dueAt).format('LL')) {
-                validDue = true;
+              if (day.format('YYYY MM DD') == cardStart) {
+                validStart = true;
                 break;
               }
             }
           }
-          if (card.hasOwnProperty('startAt')) {
+          if (card.hasOwnProperty('dueAt')) {
+            const cardDue = moment(card.dueAt).format('YYYY MM DD');
             for (let day of days) {
-              if (day.format('LL') == moment(card.startAt).format('LL')) {
-                validStart = true;
+              if (day.format('YYYY MM DD') == cardDue) {
+                validDue = true;
                 break;
               }
             }
@@ -260,11 +266,11 @@ if (Meteor.isClient) {
 
         if (Session.get('showCommits') === true) {
           if (card.hasOwnProperty('commits')) {
-            let commits = "";
+            let commits = '';
             for (var i = 0; i < card.commits.length; ++i) {
               commits += card.commits[i];
               if (i != card.commits.length - 1)
-                commits += ", ";
+                commits += ', ';
             }
             if (commits.length)
               obj.commits = commits;
