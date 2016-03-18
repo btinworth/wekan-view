@@ -106,13 +106,16 @@ if (Meteor.isClient) {
           if (Session.get('showTitles') === true) {
             cardStr += ': ' + card.title;
           }
-          ids.push(cardStr);
+          if (ids.indexOf(cardStr) == -1) {
+            ids.push(cardStr);
+          }
         }
       });
 
       if (!ids.length)
         ids.push('None');
 
+      ids.sort();
       return ids;
     },
 
@@ -260,7 +263,7 @@ if (Meteor.isClient) {
 
         if (Session.get('showDescriptions') === true) {
           if (card.hasOwnProperty('description') && card.description.length) {
-            obj.description = card.description;
+            obj.description = card.description.match(/[^\r\n]+/g);
           }
         }
 

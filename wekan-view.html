@@ -87,7 +87,11 @@
               {{#if description}}
                 <tr>
                   <th class="tableTitle">Description</th>
-                  <th class="tableData">{{description}}</th>
+                  {{#each description}}
+                    <tr>
+                      <th class="tableData">{{this}}</th>
+                    </tr>
+                  {{/each}}
                 </tr>
               {{/if}}
               {{#if commits}}
