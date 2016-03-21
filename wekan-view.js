@@ -206,9 +206,9 @@ if (Meteor.isClient) {
             ]});
             const lists = [];
             userCards.forEach(function (userCard) {
-              const listId = Lists.findOne({ _id: userCard.listId }).title;
-              if (lists.indexOf(listId) == -1)
-                lists.push(listId);
+              const listItem = Lists.findOne({ _id: userCard.listId });
+              if (lists.indexOf(listItem.title) == -1 && listItem.archived != true)
+                lists.push(listItem.title);
             });
             ids.push({
               'user':   account,
