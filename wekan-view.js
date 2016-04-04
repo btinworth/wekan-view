@@ -237,21 +237,34 @@ if (Meteor.isClient) {
           const days = getDays();
           let validStart = false;
           let validDue = false;
-          if (card.hasOwnProperty('startAt')) {
-            const cardStart = moment(card.startAt).format('YYYY MM DD');
+          if (card.hasOwnProperty('startAt') && card.hasOwnProperty('dueAt')) {
+            const cardStart = moment(card.startAt).format('X');
+            const cardEnd = moment(card.dueAt).format('X');
             for (let day of days) {
-              if (day.format('YYYY MM DD') == cardStart) {
+              const d = day.format('X');
+              if (d > cardStart && d < cardEnd) {
                 validStart = true;
+                validDue = true;
                 break;
               }
             }
-          }
-          if (card.hasOwnProperty('dueAt')) {
-            const cardDue = moment(card.dueAt).format('YYYY MM DD');
-            for (let day of days) {
-              if (day.format('YYYY MM DD') == cardDue) {
-                validDue = true;
-                break;
+          } else {
+            if (card.hasOwnProperty('startAt')) {
+              const cardStart = moment(card.startAt).format('YYYY MM DD');
+              for (let day of days) {
+                if (day.format('YYYY MM DD') == cardStart) {
+                  validStart = true;
+                  break;
+                }
+              }
+            }
+            if (card.hasOwnProperty('dueAt')) {
+              const cardDue = moment(card.dueAt).format('YYYY MM DD');
+              for (let day of days) {
+                if (day.format('YYYY MM DD') == cardDue) {
+                  validDue = true;
+                  break;
+                }
               }
             }
           }
